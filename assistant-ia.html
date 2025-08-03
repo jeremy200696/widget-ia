@@ -106,6 +106,24 @@
       box-shadow: 0 2px 10px #00000008;
       white-space: pre-line;
     }
+    .relance-btn {
+      margin: 1.5em auto 0 auto;
+      display: block;
+      width: 70%;
+      background: #fff;
+      color: #A63A3A;
+      border: 1.5px solid #A63A3A;
+      border-radius: 8px;
+      padding: 0.8em 0;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 1em;
+      transition: background 0.2s, color 0.2s;
+    }
+    .relance-btn:hover {
+      background: #A63A3A;
+      color: #fff;
+    }
     /* Responsive mobile */
     @media (max-width: 700px) {
       #assistant-ia {
@@ -138,9 +156,10 @@
     <textarea id="ia-question" rows="2" placeholder="Ex : Quelle couleur pour une petite salle de bain ?"></textarea>
     <button onclick="askAI()">Envoyer</button>
     <div id="ia-response"></div>
+    <button class="relance-btn" style="display:none" id="relance-btn" onclick="relancerIA()">Relancer ou préciser ma question</button>
   </div>
   <script>
-    // Fonction pour formater la réponse IA : point par point + saut de ligne visible
+    // Fonction pour formater la réponse IA : points numérotés, décalés, espace entre chaque point
     function formatIAResponse(text) {
       let lines = text.split(/\n|(?=\d+\.\s)|(?=- )/);
       let html = "";
@@ -150,23 +169,29 @@
         if (!clean) return;
         if (/^(\d+\.)|^- /.test(clean)) {
           count++;
-          html += `<div style="margin-left:1.5em;margin-bottom:1.1em;"><strong style="color:#A63A3A;">${count}.</strong> ${clean.replace(/^(\d+\.)|^- /, '')}</div>`;
+          html += `<div style="margin-left:1.5em;margin-bottom:1.4em;"><strong style="color:#A63A3A;">${count}.</strong> <span style="display:inline-block;vertical-align:top;">${clean.replace(/^(\d+\.)|^- /, '')}</span></div>`;
         } else {
-          html += `<div style="margin-bottom:0.95em;">${clean}</div>`;
+          html += `<div style="margin-bottom:1.2em;">${clean}</div>`;
         }
       });
       if (!html) html = text.replace(/\n/g, "<br>");
       return html;
     }
 
-    function askAI() {
-      var question = document.getElementById('ia-question').value.trim();
+    let lastQuestion = "";
+    function askAI(isRelance) {
+      var questionInput = document.getElementById('ia-question');
+      var question = questionInput.value.trim();
       var responseDiv = document.getElementById('ia-response');
+      var relanceBtn = document.getElementById('relance-btn');
       if (!question) {
         responseDiv.innerHTML = "<span style='color:#A63A3A'>Veuillez poser une question.</span>";
+        relanceBtn.style.display = "none";
         return;
       }
-      responseDiv.innerHTML = "L’IA réfléchit à votre réponse...";
+      responseDiv.innerHTML = "Mon Petit Carreau réfléchit à votre réponse...";
+      relanceBtn.style.display = "none";
+      lastQuestion = question;
       fetch("https://ia-carrelage-api.onrender.com/api/ask", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,10 +202,21 @@
         responseDiv.innerHTML = data.answer
           ? formatIAResponse(data.answer)
           : "<span style='color:#A63A3A'>Erreur : " + (data.error || "Impossible d'obtenir une réponse IA") + "</span>";
+        relanceBtn.style.display = "block";
       })
       .catch(() => {
         responseDiv.innerHTML = "<span style='color:#A63A3A'>Erreur de connexion à l'IA</span>";
+        relanceBtn.style.display = "block";
       });
+    }
+
+    function relancerIA() {
+      var questionInput = document.getElementById('ia-question');
+      // Pré-remplir le champ avec la dernière question (pour permettre une précision)
+      questionInput.value = lastQuestion + " (Merci de préciser différemment ou de relancer la question)";
+      questionInput.focus();
+      // Scroll vers le haut
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   </script>
 </body>
