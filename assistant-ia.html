@@ -8,58 +8,65 @@
     @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap');
     body {
       font-family: 'Avenir', 'Montserrat', Arial, sans-serif;
-      background: #fffaf8;
+      background: #fafafa;
       margin: 0;
       padding: 0;
     }
     #assistant-ia {
-      max-width: 440px;
-      margin: 2.5em auto;
+      max-width: 680px;
+      margin: 3em auto;
       background: #fff;
-      border-radius: 22px;
-      box-shadow: 0 4px 32px #e3ece7;
-      padding: 2em 2em 2.5em 2em;
-      border: 2px solid #A63A3A22;
+      border-radius: 24px;
+      box-shadow: 0 6px 32px #23232311;
+      padding: 2.5em 2em 2.8em 2em;
+      border: 1.5px solid #222;
       text-align: center;
+      min-width: 340px;
     }
     #logo-mpc {
       max-width: 120px;
-      margin-bottom: 0.9em;
-      border-radius: 16px;
-      box-shadow: 0 2px 14px #A63A3A44;
+      margin-bottom: 0.7em;
+      border-radius: 12px;
       background: #fff;
-      padding: 0.5em;
+      padding: 0.2em;
       display: block;
       margin-left: auto;
       margin-right: auto;
+      box-shadow: none;
+      border: 2px solid #111;
     }
     h3 {
       margin-top: 0;
       color: #A63A3A;
-      font-weight: 600;
+      font-weight: 700;
       letter-spacing: -1px;
+      font-size: 2em;
     }
     .subtext {
-      color: #A63A3ACC;
-      font-size: 1em;
-      margin-bottom: 1em;
-      font-family: 'Montserrat', Arial, sans-serif;
+      color: #232323;
+      font-size: 1.08em;
+      margin-bottom: 1.5em;
+      margin-top: -0.3em;
     }
     input, button {
-      font-size: 1em;
+      font-size: 1.11em;
       margin-top: 10px;
       font-family: inherit;
     }
     input[type="text"] {
-      width: 100%;
-      padding: 0.7em;
+      width: 96%;
+      padding: 0.8em;
       border-radius: 8px;
-      border: 1.6px solid #A63A3A44;
-      background: #f7f4f4;
-      color: #A63A3A;
+      border: 1.5px solid #111;
+      background: #fff;
+      color: #232323;
       outline: none;
-      font-size: 1em;
       margin-bottom: 8px;
+      margin-top: 0.5em;
+      transition: border 0.2s;
+    }
+    input[type="text"]:focus {
+      border: 1.5px solid #A63A3A;
     }
     button {
       width: 100%;
@@ -67,27 +74,41 @@
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 0.8em 0;
-      margin-top: 0.5em;
+      padding: 0.9em 0;
+      margin-top: 0.6em;
       cursor: pointer;
       font-weight: 600;
+      font-size: 1.15em;
       transition: background 0.2s;
-      font-size: 1.1em;
       box-shadow: 0 1px 5px #A63A3A33;
+      letter-spacing: 0.5px;
     }
     button:hover {
-      background: #822B2B;
+      background: #7c2828;
     }
     #ia-response {
-      margin-top: 1.2em;
-      font-size: 1.09em;
-      min-height: 50px;
-      line-height: 1.5;
-      color: #3d4543;
-      background: #fff9f5;
-      border-radius: 10px;
-      padding: 1em;
-      border: 1.1px solid #A63A3A22;
+      margin-top: 1.5em;
+      font-size: 1.13em;
+      line-height: 1.65;
+      color: #111;
+      background: #fff;
+      border-radius: 14px;
+      padding: 1.2em 1.5em;
+      border: 1px solid #222;
+      text-align: left;
+      min-height: 60px;
+      box-shadow: 0 2px 10px #00000008;
+      white-space: pre-line;
+    }
+    /* Responsive pour mobile */
+    @media (max-width: 700px) {
+      #assistant-ia {
+        max-width: 99vw;
+        padding: 1.2em 0.3em 1.5em 0.3em;
+      }
+      #ia-response {
+        padding: 0.7em 0.5em;
+      }
     }
   </style>
 </head>
@@ -95,17 +116,42 @@
   <div id="assistant-ia">
     <img src="MON PETIT CARREAU PRINCIPAL logo.png" id="logo-mpc" alt="Logo MonPetitCarreau" />
     <h3>Votre assistant déco & carrelage</h3>
-    <div class="subtext">Posez une question sur les tendances, les couleurs, l’entretien ou l’association de carreaux !</div>
-    <input type="text" id="ia-question" placeholder="Ex : Quelle couleur pour une petite salle de bain ?">
+    <div class="subtext">
+      Posez une question sur les tendances, les couleurs, l’entretien ou l’association de carreaux !
+    </div>
+    <input type="text" id="ia-question" placeholder="Ex : Quelle couleur pour une petite salle de bain ?">
     <button onclick="askAI()">Envoyer</button>
     <div id="ia-response"></div>
   </div>
   <script>
+    // Fonction de formattage automatique "bullet points"
+    function formatIAResponse(text) {
+      // Convertir numérotation ou tirets en liste
+      // Ex : 1. ou 2. ou - 
+      let lines = text.split(/\n|(?=\d+\.\s)|(?=- )/);
+      let html = "";
+      let count = 0;
+      lines.forEach(line => {
+        let clean = line.trim();
+        if (!clean) return;
+        // Si ligne commence par un numéro (1. 2. etc.) ou un tiret
+        if (/^(\d+\.)|^- /.test(clean)) {
+          count++;
+          html += `<div style="margin-left:1.5em;margin-bottom:0.2em;"><strong style="color:#A63A3A;">${count}.</strong> ${clean.replace(/^(\d+\.)|^- /, '')}</div>`;
+        } else {
+          html += `<div style="margin-bottom:0.18em;">${clean}</div>`;
+        }
+      });
+      // Si pas de point, retour à la ligne simple
+      if (!html) html = text.replace(/\n/g, "<br>");
+      return html;
+    }
+
     function askAI() {
       var question = document.getElementById('ia-question').value.trim();
       var responseDiv = document.getElementById('ia-response');
       if (!question) {
-        responseDiv.innerHTML = "<span style='color:red'>Veuillez poser une question.</span>";
+        responseDiv.innerHTML = "<span style='color:#A63A3A'>Veuillez poser une question.</span>";
         return;
       }
       responseDiv.innerHTML = "L’IA réfléchit à votre réponse...";
@@ -117,11 +163,11 @@
       .then(r => r.json())
       .then(data => {
         responseDiv.innerHTML = data.answer
-          ? data.answer
-          : "<span style='color:red'>Erreur : " + (data.error || "Impossible d'obtenir une réponse IA") + "</span>";
+          ? formatIAResponse(data.answer)
+          : "<span style='color:#A63A3A'>Erreur : " + (data.error || "Impossible d'obtenir une réponse IA") + "</span>";
       })
       .catch(() => {
-        responseDiv.innerHTML = "<span style='color:red'>Erreur de connexion à l'IA</span>";
+        responseDiv.innerHTML = "<span style='color:#A63A3A'>Erreur de connexion à l'IA</span>";
       });
     }
   </script>
